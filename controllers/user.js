@@ -10,6 +10,35 @@ class userController{
     login_post(req,res){
 
     }
+    register_post(req, res, next) {
+            var username = req.body.username
+            var email = req.body.email
+            var password = req.body.password
+
+
+            console.log(username);
+            console.log(password);
+            res.json({ message: " ^^! " })
+            AccountModel.findOne({
+                    username: username
+                })
+                .then(data => {
+                    if (data) {
+                        res.json('Username đã tồn tại')
+                    } else {
+                        return AccountModel.create({
+                            username: username,
+                            email: email,
+                            password: password
+                        })
+                    }
+                })
+                .then(data => {
+                    console.log("Complete");
+                }).catch(Error => {
+                    res.status(500).json('Tạo tài khoản thất bại')
+                })
+        }
     async register_post(req,res){
         try{
             let data = req.body;
