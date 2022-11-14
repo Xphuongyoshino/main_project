@@ -171,5 +171,100 @@ class userController {
         res.cookie('user','',{httpOnly:true,maxAge:1});
         res.redirect('/');
     }
+    async forgot_post(req, res) {
+            const { email } = req.body
+            const { password } = req.body
+                //res.send(email)
+
+            let UserEmail = await AccountModel.findOne({ email })
+            let UserID = await AccountModel.findById('636b26f37852fdbd9b35bc49')
+            let Userpass = AccountModel.findOne(password)
+            if (!UserEmail) {
+                res.send('User not registered')
+                return;
+            }
+            const secret = JWT_SECRET + Userpass.password
+            const payload = {
+                email: UserEmail.email,
+                _id: UserID._id
+            }
+            const token = jwt.sign(payload, secret, { expiresIn: '1m' })
+            const link = `http://localhost:3000/signup/reset-password/${UserID._id}/${token}`
+            console.log(link);
+            res.send('Mã reset mật khẩu đã được gửi vào email...')
+        }
+    reset_get(req, res, next) {
+        res.render('Login/reset')
+            //
+            //
+        const { _id, token } = req.params;
+        if (_id !== UserID._id) {
+            res.send('Invalid id.....')
+            return
+        } else {
+            const secret = JWT_SECRET + Userpass.password
+            try {
+                const payload = jwt.verify(token, secret)
+                res.render('reset-password', { email: UserEmail.email })
+            } catch (error) {
+                console.log(error.message);
+                res.send(error.message);
+            }
+        }
+    }
+    reset_post(req, res, next) {
+        res.render('Login/reset')
+            ////
+        const { _id, token } = req.params;
+        const { password, password2 } = req.body;
+        if (_id !== UserID._id) {
+            res.send('Invalid Id......');
+            return;
+        }
+        const secret = JWT_SECRET + Userpass.password
+        try {
+            const payload = jwt.verify(token, secret)
+            Userpass.password = password
+            res.send(AccountModel)
+        } catch (error) {
+            console.log(error.message);
+            res.render(error.message)
+        }
+    }
+    async sendmail_get(req, res) {
+        const { email } = req.body;
+        let transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: 'jennie.metz@ethereal.email',
+                pass: 'S1XFwteFMyWkRu4qxd'
+            },
+        });
+
+        // send mail with defined transport object
+        await transporter.sendMail({
+            from: "jennie.metz@ethereal.email",
+            to: `${email}`,
+            subject: "Testing 01",
+            text: "Yo",
+            html: "<b>etou</b>",
+        }, (err, sussess) => {
+            if (err) {
+                return res.json({
+                    message: "Loi",
+                    err,
+                });
+            } else {
+                console.log("Gui mail thanh cong!!");
+            }
+            return res.json({
+                message: "Check your fucking email please"
+            })
+        });
+
+    }
+    google_get(req, res) {
+        res.render('Login/google')
+    }
 }
 module.exports = new userController;
